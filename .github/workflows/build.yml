@@ -67,9 +67,17 @@ jobs:
             mingw-w64-x86_64-gcc
 
       - name: Build injector on Windows
-        # запускаем make в MSYS‑окружении
         shell: msys2 {0}
         run: |
+          # 1) Собираем саму библиотеку
+          cd src/windows
+          make
+
+          # 2) Переименовываем статическую библиотеку так, как ждёт cmd/Makefile
+          mv injector-static.lib libinjector.a
+
+          # 3) Сборка cmd/injector.exe
+          cd ../../cmd
           make
 
       - name: Upload Windows artifacts
@@ -78,5 +86,6 @@ jobs:
           name: injector-windows
           path: |
             src/windows/libinjector.a
-            src/windows/libinjector.dll
+            src/windows/injector.dll
+            src/windows/injector.lib
             cmd/injector.exe
