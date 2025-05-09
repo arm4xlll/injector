@@ -1,5 +1,5 @@
-# .github/workflows/build-macos.yml
-name: Build injector on macOS
+# .github/workflows/build.yml
+name: Build injector
 
 on:
   push:
@@ -13,17 +13,15 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build injector
-        # На macos-latest Xcode Command Line Tools уже предустановлены
+      - name: Build injector on macOS
         run: |
           make
 
-      - name: Upload build artifacts
+      - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
           name: injector-macos
@@ -31,3 +29,54 @@ jobs:
             src/macos/libinjector.a
             src/macos/libinjector.dylib
             cmd/injector
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Build injector on Linux
+        run: |
+          make
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: injector-linux
+          path: |
+            src/linux/libinjector.a
+            src/linux/libinjector.so
+            cmd/injector
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup MSYS2 (with make & GCC)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: |
+            base-devel
+            mingw-w64-x86_64-gcc
+
+      - name: Build injector on Windows
+        # запускаем make в MSYS‑окружении
+        shell: msys2 {0}
+        run: |
+          make
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: injector-windows
+          path: |
+            src/windows/libinjector.a
+            src/windows/libinjector.dll
+            cmd/injector.exe
